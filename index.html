@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ぴよらく：絶対止まるぴよ版</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #dff5ff;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    .bird {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background-repeat: no-repeat;
+      background-size: contain;
+      transform: translateY(-50%);
+    }
+
+    #timer {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 8px 14px;
+      border-radius: 12px;
+      box-shadow: 0 0 5px #999;
+    }
+  </style>
+</head>
+<body>
+
+<div id="timer">経過時間：00:00</div>
+
+<script>
+  const frames = ['bird1.png', 'bird2.png', 'bird3.png', 'bird4.png'];
+  const restFrame = 'bird_rest.png';
+
+  const frameRate = 12;
+  const frameInterval = 1000 / frameRate;
+  const speed = 2;
+
+  const delayBetween = 10000; // ← 15分待たずに動作確認しやすく！（本番は900000）
+  const numBirds = 3; // 羽数少なめにして見やすく
+
+  function createBird(index) {
+    const bird = document.createElement('div');
+    bird.className = 'bird';
+    bird.id = `bird${index}`;
+    document.body.appendChild(bird);
+
+    let posX = window.innerWidth + 100;
+    const targetX = window.innerWidth / 2 - (numBirds * 55) + index * 110;
+    const baseY = window.innerHeight / 2 + (index % 2 === 0 ? -40 : 40);
+
+    let frameIndex = 0;
+    let time = 0;
+    let flying = true;
+    let lastFrameTime = performance.now();
+
+    bird.style.left = posX + 'px';
+    bird.style.top = baseY + 'px';
+    bird.style.backgroundImage = `url('${frames[0]}')`;
+
+    function animateBird() {
+      const now = performance.now();
+
+      if (flying) {
+        if (now - lastFrameTime >= frameInterval) {
+          frameIndex = (frameIndex + 1) % frames.length;
+          bird.style.backgroundImage = `url('${frames[frameIndex]}')`;
+          lastFrameTime = now;
+        }
+
+        if (posX > targetX) {
+          posX -= speed;
+          bird.style.left = posX + 'px';
+
+          time += 0.05;
+          const offsetY = Math.sin(time) * 20;
+          bird.style.top = baseY + offsetY + 'px';
+        } else {
+          flying = false;
+          bird.style.left = targetX + 'px';
+          bird.style.top = baseY + 'px';
+          bird.style.backgroundImage = `url('${restFrame}')`;
+          console.log(`✅ bird${index} has landed!`);
+        }
+      }
+
+      requestAnimationFrame(animateBird);
+    }
+
+    animateBird();
+  }
+
+  // 初回すぐ1羽目
+  createBird(0);
+
+  // 残りのぴよ
+  for (let i = 1; i < numBirds; i++) {
+    setTimeout(() => {
+      createBird(i);
+    }, i * delayBetween);
+  }
+
+  // タイマー表示
+  const timerDisplay = document.getElementById('timer');
+  const startTime = Date.now();
+
+  function updateTimer() {
+    const now = Date.now();
+    const elapsed = now - startTime;
+    const totalSeconds = Math.floor(elapsed / 1000);
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+    timerDisplay.textContent = `経過時間：${minutes}:${seconds}`;
+    requestAnimationFrame(updateTimer);
+  }
+
+  updateTimer();
+</script>
+
+</body>
+</html>
