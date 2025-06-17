@@ -125,5 +125,51 @@
   updateTimer();
 </script>
 
+<script>
+  let birdHasFlown = false;
+
+  function flyAwayBirds() {
+  if (birdHasFlown) return;
+  birdHasFlown = true;
+
+  const birds = document.querySelectorAll('.bird');
+
+  birds.forEach(bird => {
+    // 羽ばたきアニメ高速化！
+    let frame = 0;
+    const flapping = setInterval(() => {
+      frame = (frame + 1) % frames.length;
+      bird.style.backgroundImage = `url('${frames[frame]}')`;
+    }, 50); // ← 速くバサバサする！！
+
+    // 飛ぶ方向をランダムに決定
+    const angle = Math.random() * Math.PI * 2; // 0〜360度
+    const speed = 300 + Math.random() * 200;   // px/s
+
+    // 移動先の位置を計算
+    const dx = Math.cos(angle) * speed;
+    const dy = Math.sin(angle) * speed;
+
+    bird.style.transition = 'transform 1s ease, opacity 1s ease';
+    bird.style.transform = `translate(${dx}px, ${dy}px) rotate(${(Math.random() * 60 - 30)}deg)`;
+    bird.style.opacity = 0;
+
+    // 羽ばたき止めてDOMから消す
+    setTimeout(() => {
+      clearInterval(flapping);
+      bird.remove();
+    }, 1000);
+  });
+
+  console.log("🕊️ 全方向にぴよ逃げた！！");
+}
+
+
+  // トリガーとなるイベント
+  ['click', 'touchstart', 'scroll', 'keydown'].forEach(evt => {
+    window.addEventListener(evt, flyAwayBirds, { once: true });
+  });
+</script>
+
 </body>
 </html>
